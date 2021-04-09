@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sudoku</title>
 
+    <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
+
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&display=swap" rel="stylesheet">
 
@@ -32,7 +34,7 @@
         }
 
         .container__title {
-            border-bottom: 1px solid;
+            border-bottom: 1px solid #000;
             padding-bottom: .5rem;
             font-size: 42px;
         }
@@ -51,11 +53,13 @@
             text-align: center;
         }
 
-        .form__span {}
+        .form__label {
+            background-color: inherit;
+            transition: background-color .1s ease-in-out;
+        }
 
         .form__button {
             padding: 1rem;
-            margin-top: 1rem;
         }
 
         .form__input--hidden {
@@ -66,6 +70,16 @@
         .form__button--pointer {
             cursor: pointer;
         }
+
+        .form__span--link {
+            color: #00f;
+            border-bottom: 1px solid #00f;
+        }
+
+        .form__label:hover {
+            background-color: #eee;
+            transition: background-color .1s ease-in-out;
+        }
     </style>
 </head>
 <body>
@@ -74,7 +88,9 @@
         <h1 class="container__title">Sudoku</h1>
 
         <form action="" method="post" class="form">
-            <label for="sudokuFile" class="form__label form__label--pointer">Import your sudoku file as an example to solve it</label>
+            <label for="sudokuFile" class="form__label form__label--pointer">
+                Import <span class="form__span--link">here</span> your sudoku file to solve it
+            </label>
             <input id="sudokuFile" class="form__input--hidden" type="file">
             <span class="form__span">Choose the solution method</span>
             <button class="form__button form__button--pointer">Blind Search</button>
