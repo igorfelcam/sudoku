@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sudoku</title>
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            box-sizing: border-box;
+            font-family: 'Amatic SC', cursive;
+            font-weight: 700;
+            font-size: 26px;
+        }
+
+        body {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            width: 60%;
+            padding: 1rem;
+        }
+
+        .container__title {
+            border-bottom: 1px solid;
+            padding-bottom: .5rem;
+            font-size: 42px;
+        }
+
+        .form {
+            display: grid;
+            grid-template-columns: 50% 50%;
+            align-items: center;
+        }
+
+        .form__label,
+        .form__span {
+            grid-column-start: 1;
+            grid-column-end: span 2;
+            padding: 1rem 0;
+            text-align: center;
+        }
+
+        .form__span {}
+
+        .form__button {
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .form__input--hidden {
+            display: none;
+        }
+
+        .form__label--pointer,
+        .form__button--pointer {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <section class="container">
+        <h1 class="container__title">Sudoku</h1>
+
+        <form action="" method="post" class="form">
+            <label for="sudokuFile" class="form__label form__label--pointer">Import your sudoku file as an example to solve it</label>
+            <input id="sudokuFile" class="form__input--hidden" type="file">
+            <span class="form__span">Choose the solution method</span>
+            <button class="form__button form__button--pointer">Blind Search</button>
+            <button class="form__button form__button--pointer">Heuristic Search</button>
+        </form>
+    </section>
+
+</body>
+</html>
