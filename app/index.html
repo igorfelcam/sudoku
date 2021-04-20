@@ -87,14 +87,14 @@
     <section class="container">
         <h1 class="container__title">Sudoku</h1>
 
-        <form action="" method="post" class="form">
+        <form action="app.php" method="post" class="form" enctype="multipart/form-data">
             <label for="sudokuFile" class="form__label form__label--pointer">
                 Import <span class="form__span--link">here</span> your sudoku file to solve it
             </label>
-            <input id="sudokuFile" class="form__input--hidden" type="file">
+            <input id="sudokuFile" class="form__input--hidden" type="file" name="sudoku_file">
             <span class="form__span">Choose the solution method</span>
-            <button class="form__button form__button--pointer">Blind Search</button>
-            <button class="form__button form__button--pointer">Heuristic Search</button>
+            <button class="form__button form__button--pointer" type="submit">Blind Search</button>
+            <button class="form__button form__button--pointer" type="submit">Heuristic Search</button>
         </form>
     </section>
 
