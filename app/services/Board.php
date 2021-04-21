@@ -11,9 +11,11 @@ class Board
      */
     public function removeDivisorsOfBoard($boardLines)
     {
-        return array_filter(
-            $boardLines,
-            fn($line) => strstr($line, "|")
+        return array_values(
+            array_filter(
+                $boardLines,
+                fn($line) => strstr($line, "|")
+            )
         );
     }
 
@@ -46,7 +48,12 @@ class Board
                 array_map(
                     function($item) {
                         $item = explode(" ", $item);
-                        return array_filter($item, fn($i) => !empty($i));
+                        return array_values(
+                            array_filter(
+                                $item,
+                                fn($i) => !empty($i)
+                            )
+                        );
                     },
                     $line
                 );

@@ -3,21 +3,26 @@
 namespace Controllers;
 
 use Services\Board;
+use Services\Search;
 class Sudoku
 {
     /**
      * @var $sudokuBoard
+     * @var $search
      */
     protected $sudokuBoard;
+    protected $search;
 
     /**
      * Sudoku constructor
      *
      * @param Board $sudokuBoard
+     * @param Search $search
      */
-    public function __construct(Board $sudokuBoard)
+    public function __construct(Board $sudokuBoard, Search $search)
     {
-        $this->sudokuBoard = $sudokuBoard;
+        $this->sudokuBoard  = $sudokuBoard;
+        $this->search       = $search;
     }
 
     /**
@@ -53,6 +58,25 @@ class Sudoku
                 );
 
             return true;
+
+        } catch (\Exception $ex) {
+            return $ex->getMessage();
+        }
+    }
+
+    /**
+     * Resolve Sudoku
+     *
+     * @param array $sudokuBoard
+     */
+    public function resolveSudoku($sudokuBoard)
+    {
+        try {
+
+            $emptyItems = $this->search->getEmptyItems($sudokuBoard);
+
+            return $emptyItems;
+
 
         } catch (\Exception $ex) {
             return $ex->getMessage();
