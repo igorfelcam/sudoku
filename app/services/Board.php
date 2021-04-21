@@ -1,9 +1,14 @@
 <?php
 
 namespace Services;
-
 class Board
 {
+    /**
+     * Remove divisors string of sudoku board
+     *
+     * @param array $boardLines
+     * @return array
+     */
     public function removeDivisorsOfBoard($boardLines)
     {
         return array_filter(
@@ -12,6 +17,12 @@ class Board
         );
     }
 
+    /**
+     * Break into section of sudoku board
+     *
+     * @param array $boardLines
+     * @return array
+     */
     public function breakIntoSectionsOfBoard($boardLines)
     {
         return array_map(
@@ -20,6 +31,12 @@ class Board
         );
     }
 
+    /**
+     * Break into itens of sudoku board
+     *
+     * @param array $boardSections
+     * @return array
+     */
     public function breakIntoItensOfBoard($boardSections)
     {
         $board = [];
@@ -38,6 +55,12 @@ class Board
         return $this->removeSpacesOfBoard($board);
     }
 
+    /**
+     * Remove items spaces of sudoku board
+     *
+     * @param array $board
+     * @return array
+     */
     private function removeSpacesOfBoard($board)
     {
         array_walk_recursive(
