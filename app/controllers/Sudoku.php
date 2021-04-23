@@ -80,9 +80,9 @@ class Sudoku
 
             $searchTree = [];
             $node       = 0;
-            $index_valid_frontier = 0;
-
-            $currentStateNode = $sudokuBoard;
+            $start_time = microtime(true);
+            $index_valid_frontier   = 0;
+            $currentStateNode       = $sudokuBoard;
 
             while (count($nodeEmptyItems) > 0) {
 
@@ -138,9 +138,13 @@ class Sudoku
                 $nodeEmptyItems = $this->search->getEmptyItems($currentStateNode);
             }
 
+            $end_time = microtime(true);
+
             return [
                 'solution'      => $currentStateNode,
-                'search_tree'   => $searchTree
+                'search_tree'   => $searchTree,
+                'start_time'    => $start_time,
+                'end_time'      => $end_time
             ];
 
         } catch (\Exception $ex) {
