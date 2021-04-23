@@ -83,11 +83,28 @@ class Search
 
             $validFrontiers[] = [
                 'possibility_item_value'    => $possibility_item_value,
-                'sudoku_board'              => $frontierPossibilitie
+                'sudoku_board'              => $frontierPossibilitie,
+                'is_verified'               => false
             ];
         }
 
         return $validFrontiers;
+    }
+
+    /**
+     * Get the index of next valid frontier not verified
+     *
+     * @param array $validatesFrontiers
+     * @return int $index_valid_frontier
+     */
+    public function getIndexNextValidFrontierNotVerified($validatesFrontiers)
+    {
+        $filterValidFrontiers = array_filter(
+            $validatesFrontiers,
+            fn($frontier) => !$frontier['is_verified']
+        );
+
+        return array_key_first($filterValidFrontiers);
     }
 
     /**
@@ -154,19 +171,23 @@ class Search
      */
     private function validSudokuBlock($possibility_item_value, $frontierPossibilitie, $possibilityItem)
     {
-        $blocks_on_the_board        = sqrt(count($frontierPossibilitie));
-        $block_of_item_line         = intval($possibilityItem['line'] / $blocks_on_the_board);
+        $total_lines_on_the_board   = count($frontierPossibilitie);
+        $blocks_on_the_board        = (int) sqrt($total_lines_on_the_board);
         $number_predecessor_lines   = 0;
         $number_repeat_items        = 0;
         $is_valid                   = true;
 
-        if ($possibilityItem['line'] - 1 >= 0) {
-            for ($i = ($possibilityItem['line'] - 1); $i > 0; $i--) {
-                $block_line = intval( $i / $blocks_on_the_board );
-
-                if ($block_line === $block_of_item_line) {
-                    $number_predecessor_lines++;
+        if ($possibilityItem['line'] > 0) {
+            for ($i = 0; $i < $total_lines_on_the_board; $i++) {
+                if ($number_predecessor_lines === $blocks_on_the_board) {
+                    $number_predecessor_lines = 0;
                 }
+
+                if ($i === $possibilityItem['line']) {
+                    break;
+                }
+
+                $number_predecessor_lines++;
             }
         }
 

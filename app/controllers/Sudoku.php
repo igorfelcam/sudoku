@@ -72,11 +72,76 @@ class Sudoku
     public function resolveSudoku($sudokuBoard)
     {
         try {
+            $nodeEmptyItems = $this->search->getEmptyItems($sudokuBoard);
 
-            $emptyItems = $this->search->getEmptyItems($sudokuBoard);
+            if (count($nodeEmptyItems) === 0) {
+                return $sudokuBoard;
+            }
 
-            return $emptyItems;
+            $searchTree = [];
+            $node       = 0;
+            $index_valid_frontier = 0;
 
+            $currentStateNode = $sudokuBoard;
+
+            while (count($nodeEmptyItems) > 0) {
+
+                $node++;
+                $nodeEmptyItem      = $nodeEmptyItems[0];
+                $frontiers          = $this->search->generateFrontierPossibilities($nodeEmptyItem, $currentStateNode);
+                $validatesFrontiers = $this->search->validatesFrontiersPossibilities($nodeEmptyItem, $frontiers);
+
+                if (count($validatesFrontiers) > 0) {
+                    $index_valid_frontier = $this->search->getIndexNextValidFrontierNotVerified($validatesFrontiers);
+
+                    if ($index_valid_frontier === null) {
+                        throw new \Exception("Index valid frontier not found", 400);
+                    }
+
+                    $currentStateNode = $validatesFrontiers[$index_valid_frontier]['sudoku_board'];
+                    $validatesFrontiers[$index_valid_frontier]['is_verified'] = true;
+                }
+                else {
+                    $index_valid_frontier = null;
+
+                    while ($index_valid_frontier === null) {
+                        $parent_index = array_key_last($searchTree);
+
+                        if ($parent_index === null) {
+                            throw new \Exception("Parent index not found", 400);
+                        }
+
+                        $validatesFrontiers     = $searchTree[$parent_index]['valid_frontiers'];
+                        $index_valid_frontier   = $this->search->getIndexNextValidFrontierNotVerified($validatesFrontiers);
+
+                        if ($index_valid_frontier === null) {
+                            unset($searchTree[$parent_index]);
+                            $searchTree = array_values($searchTree);
+                        }
+                    }
+
+                    $currentStateNode = $validatesFrontiers[$index_valid_frontier]['sudoku_board'];
+
+                    $searchTree[$parent_index]['valid_frontiers'][$index_valid_frontier]['is_verified'] = true;
+
+                    $nodeEmptyItems = $this->search->getEmptyItems($currentStateNode);
+                    continue;
+                }
+
+                $searchTree[] = [
+                    'empty_frontier_item'   => $nodeEmptyItem,
+                    'node'                  => $node,
+                    'frontiers'             => $frontiers,
+                    'valid_frontiers'       => $validatesFrontiers
+                ];
+
+                $nodeEmptyItems = $this->search->getEmptyItems($currentStateNode);
+            }
+
+            return [
+                'solution'      => $currentStateNode,
+                'search_tree'   => $searchTree
+            ];
 
         } catch (\Exception $ex) {
             return $ex->getMessage();
