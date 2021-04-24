@@ -77,9 +77,10 @@ function BPI(Estado inicial): Nodo
 
 */
 
+ini_set('max_execution_time', 180);
 
-
-$resolvedSudoku = $sudoku->resolveSudoku($sudoku->sudokuBoard);
+$resolvedSudoku = $sudoku->resolveSudoku($sudoku->sudokuBoard, true);
+// $resolvedSudoku = $sudoku->resolveSudoku($sudoku->sudokuBoard, false);
 
 echo "<style>body { display: flex; align-items: center; justify-content: space-around; flex-wrap: wrap; }</style>";
 

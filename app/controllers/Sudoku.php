@@ -48,14 +48,9 @@ class Sudoku
     public function loadByFile($file_dir)
     {
         try {
-            $this->sudokuBoard =
-                $this->sudokuBoard->breakIntoItensOfBoard(
-                    $this->sudokuBoard->breakIntoSectionsOfBoard(
-                        $this->sudokuBoard->removeDivisorsOfBoard(
-                            file($file_dir)
-                        )
-                    )
-                );
+            $this->sudokuBoard = $this->sudokuBoard->getBoardAsMultidimensionalData(
+                file($file_dir)
+            );
 
             return true;
 
@@ -68,11 +63,13 @@ class Sudoku
      * Resolve Sudoku
      *
      * @param array $sudokuBoard
+     * @param array $withHeuristic
+     * @return array
      */
-    public function resolveSudoku($sudokuBoard)
+    public function resolveSudoku($sudokuBoard, $withHeuristic = false)
     {
         try {
-            $nodeEmptyItems = $this->search->getEmptyItems($sudokuBoard);
+            $nodeEmptyItems = $this->search->getEmptyItems($sudokuBoard, $withHeuristic);
 
             if (count($nodeEmptyItems) === 0) {
                 return $sudokuBoard;
@@ -90,6 +87,7 @@ class Sudoku
                 $nodeEmptyItem      = $nodeEmptyItems[0];
                 $frontiers          = $this->search->generateFrontierPossibilities($nodeEmptyItem, $currentStateNode);
                 $validatesFrontiers = $this->search->validatesFrontiersPossibilities($nodeEmptyItem, $frontiers);
+                // $validatesFrontiers = $nodeEmptyItems[0]['validates_frontiers'];
 
                 if (count($validatesFrontiers) > 0) {
                     $index_valid_frontier = $this->search->getIndexNextValidFrontierNotVerified($validatesFrontiers);
@@ -124,18 +122,18 @@ class Sudoku
 
                     $searchTree[$parent_index]['valid_frontiers'][$index_valid_frontier]['is_verified'] = true;
 
-                    $nodeEmptyItems = $this->search->getEmptyItems($currentStateNode);
+                    $nodeEmptyItems = $this->search->getEmptyItems($currentStateNode, $withHeuristic);
                     continue;
                 }
 
                 $searchTree[] = [
                     'empty_frontier_item'   => $nodeEmptyItem,
                     'node'                  => $node,
-                    'frontiers'             => $frontiers,
+                    // 'frontiers'             => $frontiers,
                     'valid_frontiers'       => $validatesFrontiers
                 ];
 
-                $nodeEmptyItems = $this->search->getEmptyItems($currentStateNode);
+                $nodeEmptyItems = $this->search->getEmptyItems($currentStateNode, $withHeuristic);
             }
 
             $end_time = microtime(true);

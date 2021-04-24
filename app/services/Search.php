@@ -8,9 +8,10 @@ class Search
      * Get empty items of parent node
      *
      * @param array $parentNode
+     * @param bool $withHeuristic
      * @return array $emptyItems
      */
-    public function getEmptyItems($parentNode)
+    public function getEmptyItems($parentNode, $withHeuristic = false)
     {
         $emptyItems = [];
 
@@ -22,14 +23,42 @@ class Search
                 foreach ($section as $item_key => $item) {
                     if ($item === "_") {
                         $emptyItems[] = [
-                            "line"      => $line_key,
-                            "section"   => $section_key,
-                            "item"      => $item_key
+                            'line'      => $line_key,
+                            'section'   => $section_key,
+                            'item'      => $item_key
                         ];
                     }
                 }
             }
         }
+
+        // if ($withHeuristic) {
+        //     $emptyItems = $this->getPossibleItemPossibilities($emptyItems, $parentNode);
+        // }
+
+        return $emptyItems;
+    }
+
+    /**
+     * Get possible item possibilities
+     *
+     * @param array $parentNode
+     * @param array $emptyItems
+     * @return array $emptyItemsWithPossibilities
+     */
+    private function getPossibleItemPossibilities($emptyItems, $parentNode)
+    {
+        foreach ($emptyItems as $key => &$emptyItem) {
+            $frontierPossibilities  = $this->generateFrontierPossibilities($emptyItem, $parentNode);
+            $validatesFrontiers     = $this->validatesFrontiersPossibilities($emptyItem, $frontierPossibilities);
+
+            $emptyItems[$key]['possibilities'] = count($validatesFrontiers);
+        }
+
+        usort(
+            $emptyItems,
+            fn($a, $b) => $a['possibilities'] <=> $b['possibilities']
+        );
 
         return $emptyItems;
     }
