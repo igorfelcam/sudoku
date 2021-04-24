@@ -8,14 +8,86 @@ $sudoku = new \Controllers\Sudoku(
                 new \Services\Search
             );
 
+
 $sudoku->loadByFile($_FILES['sudoku_file']['tmp_name']);
+
+/*
+https://www.moodle.unisinos.br/pluginfile.php/1334008/mod_resource/content/1/aula_02_01-Resol-prob-busca-cega.pdf
+
+
+BUSCA CEGA EM LARGURA
+
+function BL(Estado inicial): Nodo
+    Queue fronteira
+    fronteira.add(new Nodo(inicial))
+    while not fronteira.isEmpty() do
+        Nodo n ß fronteira.remove()
+        if n.getEstado().éMeta() then
+            return n
+        end if
+        if n.getEstado() não está em fechado then
+            fechado.add(n.getEstado())
+            fronteira.add(n.sucessores())
+        end if
+    end while
+return null
+
+OBTER SUCESSORES DO NÓ
+
+function sucessores (Nodo n, acao): lista de nós
+    for (cada ação em n.getEstado()) do
+        s ß cria novo nó
+        s.estado = resultado da ação em n
+        s.pai = n
+        s.acao = acao
+        s.custo_caminho = n.custo_caminho + custo_passo (n, acao, s)
+        s.profundidade = n.profundidade + 1
+        adicionar s a sucessores
+retornar sucessores
+
+
+BUSCA CEGA EM PROFUNDIDADE
+
+function BP(Estado inicial, int m): Nodo
+    Stack fronteira
+    fronteira.add(new Nodo(inicial))
+    while not fronteira.isEmpty() do
+        Nodo n ß fronteira.remove()
+        if n.getEstado().éMeta() then
+            return n
+        end if
+        if n.getProfundidade() < m then
+            fronteira.add(n.sucessores())
+        end if
+    end while
+return null
+
+
+BUSCA CEGA COM APROFUNDAMENTO ITERATIVO
+
+function BPI(Estado inicial): Nodo
+    int p ß 1
+    loop
+        Nodo n ß BP(inicial, p)
+        if n <> null then
+            return n
+        end if
+        p ß p + 1
+    end loop
+
+*/
+
+
 
 $resolvedSudoku = $sudoku->resolveSudoku($sudoku->sudokuBoard);
 
 echo "<style>body { display: flex; align-items: center; justify-content: space-around; flex-wrap: wrap; }</style>";
 
 $last_item = $resolvedSudoku['search_tree'][array_key_last($resolvedSudoku['search_tree'])];
-echo "<div>Generated nodes: " .$last_item['node']. "</div>";
+echo "<section><div>Generated nodes: " .$last_item['node']. "</div>";
+
+$seconds_execution = $resolvedSudoku['end_time'] - $resolvedSudoku['start_time'];
+echo "<div>Seconds execution: " .$seconds_execution. "s</div></section>";
 
 echo "<table style='border: 1px solid black;'>";
 
