@@ -8,94 +8,63 @@ class Search
      * Get empty items of parent node
      *
      * @param array $parentNode
-     * @return array $emptyItems
+     * @param bool $withHeuristic
+     * @return array
      */
-    public function getEmptyItems($parentNode)
+    public function getIndexOfEmptyItems($parentNode, $withHeuristic = false)
     {
-        $emptyItems = [];
+        $indexOfEmptyItems = [];
 
-        // walk line
         foreach ($parentNode as $line_key => $line) {
-            // walk section
-            foreach ($line as $section_key => $section) {
-                // walk item
-                foreach ($section as $item_key => $item) {
-                    if ($item === "_") {
-                        $emptyItems[] = [
-                            "line"      => $line_key,
-                            "section"   => $section_key,
-                            "item"      => $item_key
-                        ];
-                    }
+            foreach ($line as $item_key => $item) {
+                if ($item === "_") {
+                    $dataEmptyItem = [
+                        'line'      => $line_key,
+                        'column'    => $item_key
+                    ];
+
+                    $validFrontiers                     = $this->validatesFrontiers($dataEmptyItem, $parentNode);
+                    $dataEmptyItem['valid_frontiers']   = $validFrontiers;
+                    $dataEmptyItem['possibilities']     = count($validFrontiers);
+
+                    $indexOfEmptyItems[] = $dataEmptyItem;
                 }
             }
         }
 
-        return $emptyItems;
+        if ($withHeuristic) {
+            usort(
+                $indexOfEmptyItems,
+                fn($a, $b) => $a['possibilities'] <=> $b['possibilities']
+            );
+        }
+
+        return $indexOfEmptyItems;
     }
 
     /**
-     * Generate frontier with possibilities
+     * Get validates frontiers to empty item
      *
+     * @param array $indexOfEmptyItem
      * @param array $parentNode
-     * @param array $emptyItem
-     * @return array $possibilities
+     * @return array
      */
-    public function generateFrontierPossibilities($emptyItem, $parentNode)
+    public function validatesFrontiers($indexOfEmptyItem, $parentNode)
     {
-        $possiblesNodes = [];
-        $possible_items = count($parentNode);
-
-        for ($i = 0; $i < $possible_items; $i++) {
-            $possiblesNodes[] = $parentNode;
-            $possiblesNodes[$i][$emptyItem['line']][$emptyItem['section']][$emptyItem['item']] = (string) ($i+1);
-        }
-
-        return $possiblesNodes;
-    }
-
-    /**
-     * Validates frontiers possibilities
-     *
-     * @param array $possibilityItem
-     * @param array $frontierPossibilities
-     * @return array $validFrontiers
-     */
-    public function validatesFrontiersPossibilities($possibilityItem, $frontierPossibilities)
-    {
-        $validFrontiers = [];
-
-        foreach ($frontierPossibilities as $key => $frontierPossibilitie) {
-
-            $possibility_item_value = $frontierPossibilitie[$possibilityItem['line']][$possibilityItem['section']][$possibilityItem['item']];
-
-            if (!$this->validSudokuLine($possibility_item_value, $frontierPossibilitie[$possibilityItem['line']])) {
-                continue;
-            }
-
-            if (!$this->validSudokuColumn($possibility_item_value, $frontierPossibilitie, $possibilityItem)) {
-                continue;
-            }
-
-            if (!$this->validSudokuBlock($possibility_item_value, $frontierPossibilitie, $possibilityItem)) {
-                continue;
-            }
-
-            $validFrontiers[] = [
-                'possibility_item_value'    => $possibility_item_value,
-                'sudoku_board'              => $frontierPossibilitie,
-                'is_verified'               => false
-            ];
-        }
-
-        return $validFrontiers;
+        return $this->validatesFrontiersPossibilities(
+            $indexOfEmptyItem,
+            $this->generateFrontierPossibilities(
+                $indexOfEmptyItem,
+                $parentNode
+            )
+        );
     }
 
     /**
      * Get the index of next valid frontier not verified
      *
      * @param array $validatesFrontiers
-     * @return int $index_valid_frontier
+     * @return int
      */
     public function getIndexNextValidFrontierNotVerified($validatesFrontiers)
     {
@@ -108,25 +77,79 @@ class Search
     }
 
     /**
+     * Generate frontier with possibilities
+     *
+     * @param array $indexOfEmptyItem
+     * @param array $parentNode
+     * @return array $possiblesNodes
+     */
+    private function generateFrontierPossibilities($indexOfEmptyItem, $parentNode)
+    {
+        $possiblesNodes = [];
+        $possible_items = count($parentNode);
+
+        for ($i = 0; $i < $possible_items; $i++) {
+            $possiblesNodes[] = $parentNode;
+            $possiblesNodes[$i][$indexOfEmptyItem['line']][$indexOfEmptyItem['column']] = (string) ($i+1);
+        }
+
+        return $possiblesNodes;
+    }
+
+    /**
+     * Validates frontiers possibilities
+     *
+     * @param array $indexOfEmptyItem
+     * @param array $possibleFrontiers
+     * @return array $validFrontiers
+     */
+    private function validatesFrontiersPossibilities($indexOfEmptyItem, $possibleFrontiers)
+    {
+        $validFrontiers = [];
+
+        foreach ($possibleFrontiers as $key => $frontier) {
+
+            $possibility_item_value = $frontier[$indexOfEmptyItem['line']][$indexOfEmptyItem['column']];
+
+            if (!$this->validSudokuLine($possibility_item_value, $frontier[$indexOfEmptyItem['line']])) {
+                continue;
+            }
+
+            if (!$this->validSudokuColumn($possibility_item_value, $frontier, $indexOfEmptyItem['column'])) {
+                continue;
+            }
+
+            if (!$this->validSudokuBlock($frontier, $indexOfEmptyItem)) {
+                continue;
+            }
+
+            $validFrontiers[] = [
+                'possibility_item_value'    => $possibility_item_value,
+                'sudoku_board'              => $frontier,
+                'is_verified'               => false
+            ];
+        }
+
+        return $validFrontiers;
+    }
+
+    /**
      * Valid possibility item in sudoku line
      *
-     * @param int $possibility_item_value
-     * @param array $frontierPossibilitieLine
+     * @param int $item_value
+     * @param array $line
      * @return bool $is_valid
      */
-    private function validSudokuLine($possibility_item_value, $frontierPossibilitieLine)
+    private function validSudokuLine($item_value, $line)
     {
         $number_repeat_items    = 0;
         $is_valid               = true;
 
-        array_walk_recursive(
-            $frontierPossibilitieLine,
-            function($item) use (&$possibility_item_value, &$number_repeat_items) {
-                if ($item === $possibility_item_value) {
-                    $number_repeat_items++;
-                }
+        foreach ($line as $value) {
+            if ($value === $item_value) {
+                $number_repeat_items++;
             }
-        );
+        }
 
         if ($number_repeat_items > 1) {
             $is_valid = false;
@@ -138,18 +161,18 @@ class Search
     /**
      * Valid possibility item in sudoku column
      *
-     * @param int $possibility_item_value
-     * @param array $frontierPossibilitie
-     * @param array $possibilityItem
+     * @param string $item_value
+     * @param array $sudokuBoard
+     * @param int $column_id
      * @return bool $is_valid
      */
-    private function validSudokuColumn($possibility_item_value, $frontierPossibilitie, $possibilityItem)
+    private function validSudokuColumn($item_value, $sudokuBoard, $column_id)
     {
-        $number_repeat_items   = 0;
+        $number_repeat_items    = 0;
         $is_valid               = true;
 
-        for ($i = 0; $i < count($frontierPossibilitie); $i++) {
-            if ($possibility_item_value === $frontierPossibilitie[$i][$possibilityItem['section']][$possibilityItem['item']]) {
+        foreach ($sudokuBoard as $line) {
+            if ($line[$column_id] === $item_value) {
                 $number_repeat_items++;
             }
         }
@@ -164,59 +187,97 @@ class Search
     /**
      * Valid possibility item in sudoku block section
      *
-     * @param int $possibility_item_value
-     * @param array $frontierPossibilitie
-     * @param array $possibilityItem
+     * @param array $sudokuBoard
+     * @param array $indexOfItem
      * @return bool $is_valid
      */
-    private function validSudokuBlock($possibility_item_value, $frontierPossibilitie, $possibilityItem)
+    private function validSudokuBlock($sudokuBoard, $indexOfItem)
     {
-        $total_lines_on_the_board   = count($frontierPossibilitie);
-        $blocks_on_the_board        = (int) sqrt($total_lines_on_the_board);
-        $number_predecessor_lines   = 0;
-        $number_repeat_items        = 0;
-        $is_valid                   = true;
+        $dimension_board    = count($sudokuBoard);
+        $block_length       = (int) sqrt($dimension_board);
 
-        if ($possibilityItem['line'] > 0) {
-            for ($i = 0; $i < $total_lines_on_the_board; $i++) {
-                if ($number_predecessor_lines === $blocks_on_the_board) {
-                    $number_predecessor_lines = 0;
-                }
+        $block_line_id  = 0;
+        $count_line     = 0;
 
-                if ($i === $possibilityItem['line']) {
-                    break;
-                }
+        for ($i = 0; $i < $dimension_board; $i++) {
 
-                $number_predecessor_lines++;
+            if ($count_line === $block_length) {
+                $block_line_id++;
+                $count_line = 0;
             }
+
+            if ($indexOfItem['line'] === $i) {
+                break;
+            }
+
+            $count_line++;
         }
 
-        $number_successor_lines = intval( $blocks_on_the_board - $number_predecessor_lines - 1 );
-        $block_items            = [];
-        $block_items[]          = $frontierPossibilitie[$possibilityItem['line']][$possibilityItem['section']];
+        $block_column_id    = 0;
+        $count_column       = 0;
 
-        if ($number_predecessor_lines > 0) {
-            for ($i = 0; $i < $number_predecessor_lines; $i++) {
-                $index_line = $possibilityItem['line'] - ($i + 1);
-                $block_items[] = $frontierPossibilitie[$index_line][$possibilityItem['section']];
+        for ($i = 0; $i < $dimension_board; $i++) {
+
+            if ($count_column === $block_length) {
+                $block_column_id++;
+                $count_column = 0;
             }
+
+            if ($indexOfItem['column'] === $i) {
+                break;
+            }
+
+            $count_column++;
         }
 
-        if ($number_successor_lines > 0) {
-            for ($i = 0; $i < $number_successor_lines; $i++) {
-                $index_line = $possibilityItem['line'] + ($i + 1);
-                $block_items[] = $frontierPossibilitie[$index_line][$possibilityItem['section']];
+        $count_line     = 0;
+        $count_block    = 0;
+        $lineBlockItems = [];
+
+        foreach ($sudokuBoard as $line) {
+
+            if ($count_line === $block_length) {
+                $count_block++;
+                $count_line = 0;
             }
+
+            if ($count_block === $block_line_id) {
+                $lineBlockItems[] = $line;
+            }
+
+            $count_line++;
         }
 
-        array_walk_recursive(
-            $block_items,
-            function($item) use (&$possibility_item_value, &$number_repeat_items) {
-                if ($item === $possibility_item_value) {
-                    $number_repeat_items++;
+        $blockItems = [];
+
+        foreach ($lineBlockItems as $line) {
+            $count_column     = 0;
+            $count_block    = 0;
+
+            foreach ($line as $item) {
+
+                if ($count_column === $block_length) {
+                    $count_block++;
+                    $count_column = 0;
                 }
+
+                if ($count_block === $block_column_id) {
+                    $blockItems[] = $item;
+                }
+
+                $count_column++;
             }
-        );
+
+        }
+
+        $number_repeat_items    = 0;
+        $is_valid               = true;
+
+        foreach ($blockItems as $item) {
+            if ($item === $sudokuBoard[$indexOfItem['line']][$indexOfItem['column']]) {
+                $number_repeat_items++;
+            }
+        }
 
         if ($number_repeat_items > 1) {
             $is_valid = false;
@@ -224,5 +285,4 @@ class Search
 
         return $is_valid;
     }
-
 }

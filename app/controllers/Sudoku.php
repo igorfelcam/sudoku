@@ -33,13 +33,6 @@ class Sudoku
     }
 
     /**
-     * Sudoku setter
-     */
-    public function __set($prop, $val) {
-        $this->$prop = $val;
-    }
-
-    /**
      * Load file to sudoku board
      *
      * @param string $file_dir
@@ -48,14 +41,9 @@ class Sudoku
     public function loadByFile($file_dir)
     {
         try {
-            $this->sudokuBoard =
-                $this->sudokuBoard->breakIntoItensOfBoard(
-                    $this->sudokuBoard->breakIntoSectionsOfBoard(
-                        $this->sudokuBoard->removeDivisorsOfBoard(
-                            file($file_dir)
-                        )
-                    )
-                );
+            $this->sudokuBoard = $this->sudokuBoard->getBoardAsMultidimensionalData(
+                file($file_dir)
+            );
 
             return true;
 
@@ -68,28 +56,27 @@ class Sudoku
      * Resolve Sudoku
      *
      * @param array $sudokuBoard
+     * @param bool $withHeuristic
+     * @return array
      */
-    public function resolveSudoku($sudokuBoard)
+    public function resolveSudoku($sudokuBoard, $withHeuristic = false)
     {
         try {
-            $nodeEmptyItems = $this->search->getEmptyItems($sudokuBoard);
+            $nodeEmptyItems = $this->search->getIndexOfEmptyItems($sudokuBoard, $withHeuristic);
 
             if (count($nodeEmptyItems) === 0) {
                 return $sudokuBoard;
             }
 
+            $start_time = microtime(true);
             $searchTree = [];
             $node       = 0;
-            $start_time = microtime(true);
             $index_valid_frontier   = 0;
             $currentStateNode       = $sudokuBoard;
 
             while (count($nodeEmptyItems) > 0) {
-
                 $node++;
-                $nodeEmptyItem      = $nodeEmptyItems[0];
-                $frontiers          = $this->search->generateFrontierPossibilities($nodeEmptyItem, $currentStateNode);
-                $validatesFrontiers = $this->search->validatesFrontiersPossibilities($nodeEmptyItem, $frontiers);
+                $validatesFrontiers = $nodeEmptyItems[0]['valid_frontiers'];
 
                 if (count($validatesFrontiers) > 0) {
                     $index_valid_frontier = $this->search->getIndexNextValidFrontierNotVerified($validatesFrontiers);
@@ -121,21 +108,19 @@ class Sudoku
                     }
 
                     $currentStateNode = $validatesFrontiers[$index_valid_frontier]['sudoku_board'];
-
                     $searchTree[$parent_index]['valid_frontiers'][$index_valid_frontier]['is_verified'] = true;
 
-                    $nodeEmptyItems = $this->search->getEmptyItems($currentStateNode);
+                    $nodeEmptyItems = $this->search->getIndexOfEmptyItems($currentStateNode, $withHeuristic);
                     continue;
                 }
 
                 $searchTree[] = [
-                    'empty_frontier_item'   => $nodeEmptyItem,
+                    'empty_frontier_item'   => $nodeEmptyItems[0],
                     'node'                  => $node,
-                    'frontiers'             => $frontiers,
                     'valid_frontiers'       => $validatesFrontiers
                 ];
 
-                $nodeEmptyItems = $this->search->getEmptyItems($currentStateNode);
+                $nodeEmptyItems = $this->search->getIndexOfEmptyItems($currentStateNode, $withHeuristic);
             }
 
             $end_time = microtime(true);

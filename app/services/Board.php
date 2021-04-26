@@ -9,9 +9,25 @@ class Board
      * @param array $boardLines
      * @return array
      */
-    public function removeDivisorsOfBoard($boardLines)
+    public function getBoardAsMultidimensionalData($boardLines)
     {
         return array_values(
+            $this->removeColumnDivisorsOfBoard(
+                $this->removeLineDivisorsOfBoard($boardLines)
+            )
+        );
+    }
+
+    /**
+     * Remove line divisors string of sudoku board
+     *
+     * @param array $boardLines
+     * @return array
+     */
+    private function removeLineDivisorsOfBoard($boardLines)
+    {
+        return array_map(
+            fn($item) => trim(str_replace("\n", "", $item)),
             array_filter(
                 $boardLines,
                 fn($line) => strstr($line, "|")
@@ -20,61 +36,16 @@ class Board
     }
 
     /**
-     * Break into section of sudoku board
+     * Remove column divisors string of sudoku board
      *
      * @param array $boardLines
      * @return array
      */
-    public function breakIntoSectionsOfBoard($boardLines)
+    private function removeColumnDivisorsOfBoard($boardLines)
     {
         return array_map(
-            fn($line) => explode("|", $line),
+            fn($line) => explode(" ", str_replace("| ", "", $line)),
             $boardLines
         );
-    }
-
-    /**
-     * Break into itens of sudoku board
-     *
-     * @param array $boardSections
-     * @return array
-     */
-    public function breakIntoItensOfBoard($boardSections)
-    {
-        $board = [];
-
-        foreach ($boardSections as $line) {
-            $board[] =
-                array_map(
-                    function($item) {
-                        $item = explode(" ", $item);
-                        return array_values(
-                            array_filter(
-                                $item,
-                                fn($i) => !empty($i)
-                            )
-                        );
-                    },
-                    $line
-                );
-        }
-
-        return $this->removeSpacesOfBoard($board);
-    }
-
-    /**
-     * Remove items spaces of sudoku board
-     *
-     * @param array $board
-     * @return array
-     */
-    private function removeSpacesOfBoard($board)
-    {
-        array_walk_recursive(
-            $board,
-            fn(&$item) => $item = trim(str_replace("\n", "", $item))
-        );
-
-        return $board;
     }
 }

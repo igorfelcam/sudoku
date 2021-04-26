@@ -91,12 +91,18 @@
             <label for="sudokuFile" class="form__label form__label--pointer">
                 Import <span class="form__span--link">here</span> your sudoku file to solve it
             </label>
-            <input id="sudokuFile" class="form__input--hidden" type="file" name="sudoku_file">
+            <input id="sudokuFile" class="form__input--hidden" type="file" name="sudoku_file" required>
+            <input id="sudokuMethod" type="hidden" name="sudoku_method">
             <span class="form__span">Choose the solution method</span>
-            <button class="form__button form__button--pointer" type="submit">Blind Search (Depth-First Search)</button>
-            <button class="form__button form__button--pointer" type="submit">Heuristic Search (A*)</button>
+            <button class="form__button form__button--pointer" type="submit" onclick="getMethod('blind')">Blind Search (Depth-First Search)</button>
+            <button class="form__button form__button--pointer" type="submit" onclick="getMethod('heuristic')">Heuristic Search</button>
         </form>
     </section>
 
+    <script>
+        function getMethod(method) {
+            return document.getElementById('sudokuMethod').value = method;
+        }
+    </script>
 </body>
 </html>
