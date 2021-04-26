@@ -11,8 +11,10 @@ class Board
      */
     public function getBoardAsMultidimensionalData($boardLines)
     {
-        return $this->removeColumnDivisorsOfBoard(
-            $this->removeLineDivisorsOfBoard($boardLines)
+        return array_values(
+            $this->removeColumnDivisorsOfBoard(
+                $this->removeLineDivisorsOfBoard($boardLines)
+            )
         );
     }
 
