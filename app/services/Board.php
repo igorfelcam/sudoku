@@ -24,7 +24,7 @@ class Board
      * @param array $boardLines
      * @return array
      */
-    public function removeLineDivisorsOfBoard($boardLines)
+    private function removeLineDivisorsOfBoard($boardLines)
     {
         return array_map(
             fn($item) => trim(str_replace("\n", "", $item)),
@@ -41,7 +41,7 @@ class Board
      * @param array $boardLines
      * @return array
      */
-    public function removeColumnDivisorsOfBoard($boardLines)
+    private function removeColumnDivisorsOfBoard($boardLines)
     {
         return array_map(
             fn($line) => explode(" ", str_replace("| ", "", $line)),

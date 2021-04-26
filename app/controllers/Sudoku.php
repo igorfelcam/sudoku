@@ -33,13 +33,6 @@ class Sudoku
     }
 
     /**
-     * Sudoku setter
-     */
-    public function __set($prop, $val) {
-        $this->$prop = $val;
-    }
-
-    /**
      * Load file to sudoku board
      *
      * @param string $file_dir
@@ -83,7 +76,7 @@ class Sudoku
 
             while (count($nodeEmptyItems) > 0) {
                 $node++;
-                $validatesFrontiers = $this->search->validatesFrontiers($nodeEmptyItems[0], $currentStateNode);
+                $validatesFrontiers = $nodeEmptyItems[0]['valid_frontiers'];
 
                 if (count($validatesFrontiers) > 0) {
                     $index_valid_frontier = $this->search->getIndexNextValidFrontierNotVerified($validatesFrontiers);
@@ -91,7 +84,7 @@ class Sudoku
                     if ($index_valid_frontier === null) {
                         throw new \Exception("Index valid frontier not found", 400);
                     }
-                    
+
                     $currentStateNode = $validatesFrontiers[$index_valid_frontier]['sudoku_board'];
                     $validatesFrontiers[$index_valid_frontier]['is_verified'] = true;
                 }
@@ -120,7 +113,7 @@ class Sudoku
                     $nodeEmptyItems = $this->search->getIndexOfEmptyItems($currentStateNode, $withHeuristic);
                     continue;
                 }
-                
+
                 $searchTree[] = [
                     'empty_frontier_item'   => $nodeEmptyItems[0],
                     'node'                  => $node,

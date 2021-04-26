@@ -11,81 +11,10 @@ $sudoku = new \Controllers\Sudoku(
 
 $sudoku->loadByFile($_FILES['sudoku_file']['tmp_name']);
 
-/*
-https://www.moodle.unisinos.br/pluginfile.php/1334008/mod_resource/content/1/aula_02_01-Resol-prob-busca-cega.pdf
+ini_set('max_execution_time', 360);
 
-
-BUSCA CEGA EM LARGURA
-
-function BL(Estado inicial): Nodo
-    Queue fronteira
-    fronteira.add(new Nodo(inicial))
-    while not fronteira.isEmpty() do
-        Nodo n ß fronteira.remove()
-        if n.getEstado().éMeta() then
-            return n
-        end if
-        if n.getEstado() não está em fechado then
-            fechado.add(n.getEstado())
-            fronteira.add(n.sucessores())
-        end if
-    end while
-return null
-
-OBTER SUCESSORES DO NÓ
-
-function sucessores (Nodo n, acao): lista de nós
-    for (cada ação em n.getEstado()) do
-        s ß cria novo nó
-        s.estado = resultado da ação em n
-        s.pai = n
-        s.acao = acao
-        s.custo_caminho = n.custo_caminho + custo_passo (n, acao, s)
-        s.profundidade = n.profundidade + 1
-        adicionar s a sucessores
-retornar sucessores
-
-
-BUSCA CEGA EM PROFUNDIDADE
-
-function BP(Estado inicial, int m): Nodo
-    Stack fronteira
-    fronteira.add(new Nodo(inicial))
-    while not fronteira.isEmpty() do
-        Nodo n ß fronteira.remove()
-        if n.getEstado().éMeta() then
-            return n
-        end if
-        if n.getProfundidade() < m then
-            fronteira.add(n.sucessores())
-        end if
-    end while
-return null
-
-
-BUSCA CEGA COM APROFUNDAMENTO ITERATIVO
-
-function BPI(Estado inicial): Nodo
-    int p ß 1
-    loop
-        Nodo n ß BP(inicial, p)
-        if n <> null then
-            return n
-        end if
-        p ß p + 1
-    end loop
-
-*/
-
-// echo "<pre>";
-// var_dump(
-//     $sudoku->sudokuBoard
-// );die;
-
-ini_set('max_execution_time', 180);
-
-$resolvedSudoku = $sudoku->resolveSudoku($sudoku->sudokuBoard, true);
-// $resolvedSudoku = $sudoku->resolveSudoku($sudoku->sudokuBoard, false);
+$withHeuristic = $_POST['sudoku_method'] === "heuristic" ? true : false;
+$resolvedSudoku = $sudoku->resolveSudoku($sudoku->sudokuBoard, $withHeuristic);
 
 echo "<style>body { display: flex; align-items: center; justify-content: space-around; flex-wrap: wrap; }</style>";
 
@@ -115,7 +44,7 @@ foreach ($resolvedSudoku['solution'] as $line_key => $line) {
     }
 
     if ($line_counter === 1 && $line_key > 0) {
-        $border_top     = true;
+        $border_top = true;
     }
 
     $item_counter = 0;
@@ -131,10 +60,11 @@ foreach ($resolvedSudoku['solution'] as $line_key => $line) {
             $style = "border-top: 3px solid black;";
         }
 
-        if ($item_counter > 1 && $key == $line_length) {
+        if ($item_counter > 1 && ($item_counter - 1) == $line_length) {
             $style .= "border-left: 3px solid black;";
+            $item_counter = 1;
         }
-        else if (($key + 1) === $line_length && ($sudoku_length / $item_counter) != 1) {
+        else if ($item_counter === $line_length && ($sudoku_length / $item_counter) != 1 && $key < ($sudoku_length - 1)) {
             $style .= "border-right: 3px solid black;";
         }
 

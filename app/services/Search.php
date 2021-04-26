@@ -18,20 +18,21 @@ class Search
         foreach ($parentNode as $line_key => $line) {
             foreach ($line as $item_key => $item) {
                 if ($item === "_") {
-                    $indexOfEmptyItems[] = [
-                        'line'          => $line_key,
-                        'column'        => $item_key,
-                        'possibilities' => 0
+                    $dataEmptyItem = [
+                        'line'      => $line_key,
+                        'column'    => $item_key
                     ];
+
+                    $validFrontiers                     = $this->validatesFrontiers($dataEmptyItem, $parentNode);
+                    $dataEmptyItem['valid_frontiers']   = $validFrontiers;
+                    $dataEmptyItem['possibilities']     = count($validFrontiers);
+
+                    $indexOfEmptyItems[] = $dataEmptyItem;
                 }
             }
         }
 
         if ($withHeuristic) {
-            foreach ($indexOfEmptyItems as &$indexOfEmptyItem) {
-                $indexOfEmptyItem['possibilities'] = count($this->validatesFrontiers($indexOfEmptyItem, $parentNode));
-            }
-
             usort(
                 $indexOfEmptyItems,
                 fn($a, $b) => $a['possibilities'] <=> $b['possibilities']
@@ -43,7 +44,7 @@ class Search
 
     /**
      * Get validates frontiers to empty item
-     * 
+     *
      * @param array $indexOfEmptyItem
      * @param array $parentNode
      * @return array
@@ -63,7 +64,7 @@ class Search
      * Get the index of next valid frontier not verified
      *
      * @param array $validatesFrontiers
-     * @return int $index_valid_frontier
+     * @return int
      */
     public function getIndexNextValidFrontierNotVerified($validatesFrontiers)
     {
@@ -78,9 +79,9 @@ class Search
     /**
      * Generate frontier with possibilities
      *
+     * @param array $indexOfEmptyItem
      * @param array $parentNode
-     * @param array $emptyItem
-     * @return array $possibilities
+     * @return array $possiblesNodes
      */
     private function generateFrontierPossibilities($indexOfEmptyItem, $parentNode)
     {
@@ -98,8 +99,8 @@ class Search
     /**
      * Validates frontiers possibilities
      *
-     * @param array $possibilityItem
-     * @param array $frontierPossibilities
+     * @param array $indexOfEmptyItem
+     * @param array $possibleFrontiers
      * @return array $validFrontiers
      */
     private function validatesFrontiersPossibilities($indexOfEmptyItem, $possibleFrontiers)
@@ -135,8 +136,8 @@ class Search
     /**
      * Valid possibility item in sudoku line
      *
-     * @param int $possibility_item_value
-     * @param array $frontierPossibilitieLine
+     * @param int $item_value
+     * @param array $line
      * @return bool $is_valid
      */
     private function validSudokuLine($item_value, $line)
@@ -160,9 +161,9 @@ class Search
     /**
      * Valid possibility item in sudoku column
      *
-     * @param int $possibility_item_value
-     * @param array $frontierPossibilitie
-     * @param array $possibilityItem
+     * @param string $item_value
+     * @param array $sudokuBoard
+     * @param int $column_id
      * @return bool $is_valid
      */
     private function validSudokuColumn($item_value, $sudokuBoard, $column_id)
@@ -179,16 +180,15 @@ class Search
         if ($number_repeat_items > 1) {
             $is_valid = false;
         }
-        
+
         return $is_valid;
     }
 
     /**
      * Valid possibility item in sudoku block section
      *
-     * @param int $possibility_item_value
-     * @param array $frontierPossibilitie
-     * @param array $possibilityItem
+     * @param array $sudokuBoard
+     * @param array $indexOfItem
      * @return bool $is_valid
      */
     private function validSudokuBlock($sudokuBoard, $indexOfItem)
@@ -198,6 +198,7 @@ class Search
 
         $block_line_id  = 0;
         $count_line     = 0;
+
         for ($i = 0; $i < $dimension_board; $i++) {
 
             if ($count_line === $block_length) {
@@ -214,6 +215,7 @@ class Search
 
         $block_column_id    = 0;
         $count_column       = 0;
+
         for ($i = 0; $i < $dimension_board; $i++) {
 
             if ($count_column === $block_length) {
@@ -231,8 +233,9 @@ class Search
         $count_line     = 0;
         $count_block    = 0;
         $lineBlockItems = [];
+
         foreach ($sudokuBoard as $line) {
-            
+
             if ($count_line === $block_length) {
                 $count_block++;
                 $count_line = 0;
@@ -246,21 +249,22 @@ class Search
         }
 
         $blockItems = [];
-        foreach ($lineBlockItems as $key => $line) {
+
+        foreach ($lineBlockItems as $line) {
             $count_column     = 0;
             $count_block    = 0;
-            
+
             foreach ($line as $item) {
-                
+
                 if ($count_column === $block_length) {
                     $count_block++;
                     $count_column = 0;
                 }
-    
+
                 if ($count_block === $block_column_id) {
                     $blockItems[] = $item;
                 }
-    
+
                 $count_column++;
             }
 
@@ -278,37 +282,7 @@ class Search
         if ($number_repeat_items > 1) {
             $is_valid = false;
         }
-        
+
         return $is_valid;
-    }
-
-
-
-
-
-
-
-    /**
-     * Get possible item possibilities
-     *
-     * @param array $parentNode
-     * @param array $emptyItems
-     * @return array $emptyItemsWithPossibilities
-     */
-    private function getPossibleItemPossibilities($emptyItems, $parentNode)
-    {
-        foreach ($emptyItems as $key => &$emptyItem) {
-            $frontierPossibilities  = $this->generateFrontierPossibilities($emptyItem, $parentNode);
-            $validatesFrontiers     = $this->validatesFrontiersPossibilities($emptyItem, $frontierPossibilities);
-
-            $emptyItems[$key]['possibilities'] = count($validatesFrontiers);
-        }
-
-        usort(
-            $emptyItems,
-            fn($a, $b) => $a['possibilities'] <=> $b['possibilities']
-        );
-
-        return $emptyItems;
     }
 }
